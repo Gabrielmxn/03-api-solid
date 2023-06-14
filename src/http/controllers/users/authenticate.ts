@@ -30,10 +30,28 @@ export async function authenticate(
         },
       },
     )
+    // Criaremos um novo token
+    const refreshToken = await reply.jwtSign(
+      {},
+      {
+        sign: {
+          sub: user.id,
+          expiresIn: '7d',
+        },
+      },
+    )
 
-    return reply.status(200).send({
-      token,
-    })
+    return reply
+      .setCookie('refreshToken', refreshToken, {
+        path: '/',
+        secure: true,
+        sameSite: true,
+        httpOnly: true,
+      })
+      .status(200)
+      .send({
+        token,
+      })
   } catch (err) {
     if (err instanceof InvalidCredentialsError) {
       return reply.status(409).send({ message: err.message })
